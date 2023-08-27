@@ -24,7 +24,7 @@ app.use(express.json());
 
 
 app.use(cors({
-    origin: ["http://localhost:3000","http://localhost:3000/dashboard","https://techie-webapp.onrender.com"],
+    origin: ["http://localhost:3000","http://localhost:3000/dashboard","https://techie-webapp.onrender.com","https://techie-webapp.onrender.com/dashboard"],
     credentials: true
 }))
 
