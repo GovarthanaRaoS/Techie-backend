@@ -226,6 +226,12 @@ app.post('/savescores',(req,res)=>{
 
 app.post('/getprevresults',(req,res)=>{
 
+res.setHeader("Access-Control-Allow-Origin", "*");
+res.setHeader("Access-Control-Allow-Credentials", "true");
+res.setHeader("Access-Control-Max-Age", "1800");
+res.setHeader("Access-Control-Allow-Headers", "content-type");
+res.setHeader( "Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, PATCH, OPTIONS" ); 
+
     const {email} = req.body;
 
     console.log('Received Email: ',email)
