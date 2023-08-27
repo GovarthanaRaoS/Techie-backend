@@ -249,7 +249,7 @@ app.post('/getprevresults',(req,res)=>{
             return res.json(result);
         }else{
             console.log('results:', result);
-            return res.json(['invalid']);
+            return res.json(result);
         }
     })
 })
