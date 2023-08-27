@@ -84,7 +84,7 @@ app.post('/saveuser2',(req,res)=>{
     const {name, email, password} = req.body;
     db.query("insert into users(name,email,password) values(?,?,?)",[name,email,password],(err,result)=>{
         if(err){
-            console.log('Error:',error);
+            console.log('Error:',err);
         }
         return res.send('Data Stored Successfully');
     })
