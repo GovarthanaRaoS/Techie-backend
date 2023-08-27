@@ -82,7 +82,7 @@ app.get('/showmembers',(req,res)=>{
 
 app.post('/saveuser2',(req,res)=>{
     const {name, email, password} = req.body;
-    db.query("insert into users(name,email,password) values(?,?,?)",[name,email,hashedPassword],(err,result)=>{
+    db.query("insert into users(name,email,password) values(?,?,?)",[name,email,password],(err,result)=>{
         if(err){
             console.log('Error:',error);
         }
