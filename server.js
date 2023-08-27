@@ -80,6 +80,16 @@ app.get('/showmembers',(req,res)=>{
     })
 })
 
+app.post('/saveuser2',(req,res)=>{
+    const {name, email, password} = req.body;
+    db.query("insert into users(name,email,password) values(?,?,?)",[name,email,hashedPassword],(err,result)=>{
+        if(err){
+            console.log('Error:',error);
+        }
+        return res.send('Data Stored Successfully');
+    })
+})
+
 app.post('/saveuser',(req,res)=>{
     const {name,email,password} = req.body;
     console.log(name,email,password)
