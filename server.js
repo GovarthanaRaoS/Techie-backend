@@ -22,11 +22,6 @@ app.use(session({
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-});
-
 app.use(cors({
     origin: [
              "https://techie-webapp.onrender.com",
@@ -219,8 +214,6 @@ app.get('/doesuserexist',(req,res)=>{
 
 app.post('/savescores',(req,res)=>{
     const {name, email, score, category, date} = req.body;
-
-    res.header("Access-Control-Allow-Origin", "https://techie-webapp.onrender.com");
 
     db.query('Delete from scoreboard where name=? and category=?',[name,category],(err,result)=>{
         if(err){
