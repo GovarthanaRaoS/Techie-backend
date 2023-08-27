@@ -217,7 +217,7 @@ app.get('/doesuserexist',(req,res)=>{
 app.post('/savescores',(req,res)=>{
     const {name, email, score, category, date} = req.body;
 
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", "https://techie-webapp.onrender.com");
 
     db.query('Delete from scoreboard where name=? and category=?',[name,category],(err,result)=>{
         if(err){
