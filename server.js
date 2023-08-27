@@ -59,7 +59,7 @@ db.connect(err=>{
     console.log("Connected to mysql database")
 })
 
-app.get('https://techie-webapp-api.onrender.com',(req,res)=>{
+app.get('/greet',(req,res)=>{
     return res.send('Hello');
 })
 
