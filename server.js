@@ -30,7 +30,6 @@ app.use(cors({
              "https://techie-webapp.onrender.com/greet",
              "https://techie-webapp.onrender.com/dashboard2",
              "https://techie-webapp.onrender.com/dashboard2/taketest/general",
-             "https://techie-webapp.onrender.com"
             ],
     credentials: true
 }))
@@ -217,6 +216,8 @@ app.get('/doesuserexist',(req,res)=>{
 
 app.post('/savescores',(req,res)=>{
     const {name, email, score, category, date} = req.body;
+
+    res.header("Access-Control-Allow-Origin", "*");
 
     db.query('Delete from scoreboard where name=? and category=?',[name,category],(err,result)=>{
         if(err){
