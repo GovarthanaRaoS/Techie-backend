@@ -30,6 +30,7 @@ app.use(cors({
              "https://techie-webapp.onrender.com/greet",
              "https://techie-webapp.onrender.com/dashboard2",
              "https://techie-webapp.onrender.com/dashboard2/taketest/general",
+             "https://techie-webapp.onrender.com"
             ],
     credentials: true
 }))
