@@ -526,16 +526,17 @@ app.post('/logout',(req,res)=>{
         }
     });
 })
-if(process.env.NODE_ENV === 'production'){
 
-    app.use(express.static('techie_frontend/build'))
-    const path = require('path');
+// if(process.env.NODE_ENV === 'production'){
 
-    app.get('/*', (req, res, next) => {
-        console.log('Redirecting to index.html')
-        res.sendFile(path.resolve(__dirname,'techie-frontend','build','index.html'))
-      });
-}
+//     app.use(express.static('techie_frontend/build'))
+//     const path = require('path');
+
+//     app.get('/*', (req, res, next) => {
+//         console.log('Redirecting to index.html')
+//         res.sendFile(path.resolve(__dirname,'techie-frontend','build','index.html'))
+//       });
+// }
 
 app.listen(9092,()=>{
     console.log("Listening in port 9092");
