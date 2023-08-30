@@ -313,7 +313,8 @@ app.post('/getprevresults',(req,res)=>{
 
     db.query('select * from scoreboard where email=?',[email],(err,result)=>{
         if(err){
-            return res.send('Error occurred while fetching user')
+            return res.json([]);
+
         }
         if(result.length >0 ){
             console.log(result);
