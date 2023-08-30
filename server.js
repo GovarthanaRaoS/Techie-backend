@@ -82,8 +82,18 @@ app.get('/getusers',(req,res)=>{
             console.log("Error while retreiving data",err);
             return
         }
-        console.log("Data Retreived successfully");
-        return res.json(result);
+        if(result.length>0){
+
+            console.log("Data Retreived successfully");
+            return res.json(result);
+
+        }else{
+
+            console.log("Nothing to return");
+            return res.json(result);
+
+        }
+
     })
 })
 
@@ -319,7 +329,7 @@ app.get('/getscoreboard',(req,res)=>{
     db.query('select * from scoreboard',(err,result)=>{
         if(err){
             console.log('Error while fetching the scoreboard: ',err);
-            return res.json(['invalid'])
+            return res.json([]);
         }
         return res.json(result);
     })
