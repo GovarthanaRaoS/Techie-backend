@@ -50,19 +50,19 @@ contactEmail.verify((error)=>{
     }
 })
 
-// const db = mysql.createConnection({
-//     host: "sql6.freesqldatabase.com",
-//     user: "sql6642632",
-//     password: "RF5rVDsGzF",
-//     database: "sql6642632"
-// })
-
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "root123",
-    database: "nodetechie"
+    host: "sql6.freesqldatabase.com",
+    user: "sql6642632",
+    password: "RF5rVDsGzF",
+    database: "sql6642632"
 })
+
+// const db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",
+//     password: "root123",
+//     database: "nodetechie"
+// })
 
 db.connect(err=>{
     if(err){
