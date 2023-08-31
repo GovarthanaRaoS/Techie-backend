@@ -568,14 +568,14 @@ app.post('/logout',(req,res)=>{
 //     res.sendFile(path.resolve(__dirname,'../../tech-front/Techie-Frontend/build/index.html'))
 // })
 
-app.get('/*',(req,res)=>{
-    res.sendFile(path.join(__dirname,'../../tech-front/Techie-Frontend/build/index.html'),(err)=>{
-        if(err){
-            return res.status(500).send(err);
-        }
-    }
-    )
-})
+// app.get('/getf',(req,res)=>{
+//     res.sendFile(path.join(__dirname,'../../tech-front/Techie-Frontend/public/index.html'),(err)=>{
+//         if(err){
+//             return res.status(500).send(err);
+//         }
+//     }
+//     )
+// })
 app.listen(9092,()=>{
     console.log("Listening in port 9092");
 })
