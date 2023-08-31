@@ -550,10 +550,6 @@ app.post('/logout',(req,res)=>{
 //       });
 // }
 
-app.get("*", (req, res) => {
-    res.writeHead(301,'https://techie-webapp.onrender.com')
-  });
-
 app.listen(9092,()=>{
     console.log("Listening in port 9092");
 })
