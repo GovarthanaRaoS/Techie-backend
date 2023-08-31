@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
+const path = require('path');
 
 const app = express();
 app.use(cookieParser());
@@ -551,6 +552,30 @@ app.post('/logout',(req,res)=>{
 //       });
 // }
 
+
+
+// app.get('/*',(req,res)=>{
+//     res.sendFile(
+//         path.join('../../tech-front/Techie-Frontend/build/index.html')
+//     )
+// })
+
+// app.get('/*',(req,res)=>{
+
+// })
+
+// app.get('/*',(req,res)=>{
+//     res.sendFile(path.resolve(__dirname,'../../tech-front/Techie-Frontend/build/index.html'))
+// })
+
+app.get('/*',(req,res)=>{
+    res.sendFile(path.join(__dirname,'../../tech-front/Techie-Frontend/build/index.html'),(err)=>{
+        if(err){
+            return res.status(500).send(err);
+        }
+    }
+    )
+})
 app.listen(9092,()=>{
     console.log("Listening in port 9092");
 })
