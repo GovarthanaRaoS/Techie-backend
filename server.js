@@ -551,7 +551,7 @@ app.post('/logout',(req,res)=>{
 // }
 
 app.get("*", (req, res) => {
-    res.sendFile(path.resolve("https://techie-webapp.onrender.com"));
+    res.writeHead(301,'https://techie-webapp.onrender.com')
   });
 
 app.listen(9092,()=>{
