@@ -495,6 +495,21 @@ app.post('/sortdate',(req,res)=>{
 
 //End of Sorting Queries
 
+app.get('/getuserdata',(req,res)=>{
+
+    const {email} = req.body;
+
+    db.query('select name, email, phoneno, highest_grad, college_name, profession, company_name from users where email = ?',[email],(err,result)=>{
+        if(err){
+            console.log('Something went wrong while returning user data for updating');
+            return res.json([{message: 'error'}])
+        }
+        console.log('Retreived user data for updating: ',result);
+        return res.json(result);
+    })
+
+})
+
 app.post('/updateuser',(req,res)=>{
 
     const {name, email ,phoneno, highest_grad, college_name, profession, company_name} = req.body;
@@ -502,9 +517,12 @@ app.post('/updateuser',(req,res)=>{
     db.query('update users set name=?, phoneno=?, highest_grad=?, college_name=?, profession=?, company_name=? where email=?',[name,phoneno,highest_grad,college_name,profession, company_name,email ],(err,result)=>{
         if(err){
             console.log('Error: ',err);
-            return res.send('Something went wrong while updating the users');
+            return res.json([{message: 'error'}]);
         }
         console.log('Result while updating ',result);
+        // db.query('select name, email, phoneno, highest_grad, college_name, profession, company_name from users where email = ?',[email],(errr,resul)=>{
+
+        // })
         return res.send('Updated successfully');
     })
 })
