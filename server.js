@@ -82,7 +82,7 @@ app.get('/getusers',(req,res)=>{
     db.query("select id,name,email,role from users",(err,result)=>{
         if(err){
             console.log("Error while retreiving data",err);
-            return
+            return res.json([{message: 'error'}]);
         }
         if(result.length>0){
 
