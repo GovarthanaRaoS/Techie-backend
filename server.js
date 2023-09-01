@@ -332,7 +332,7 @@ app.get('/getscoreboard',(req,res)=>{
     db.query('select * from scoreboard',(err,result)=>{
         if(err){
             console.log('Error while fetching the scoreboard: ',err);
-            return res.json([]);
+            return res.json([{message: 'error'}]);
         }
         return res.json(result);
     })
