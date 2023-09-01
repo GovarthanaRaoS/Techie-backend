@@ -495,7 +495,7 @@ app.post('/sortdate',(req,res)=>{
 
 //End of Sorting Queries
 
-app.get('/getuserdata',(req,res)=>{
+app.post('/getuserdata',(req,res)=>{
 
     const {email} = req.body;
 
