@@ -169,6 +169,7 @@ app.post('/saveuser',(req,res)=>{
     db.query("select email from users where email=?",[email],(err,result)=>{
         if(err){
             console.log("Something went wrong while checking for existing email",err);
+            return res.json({message:'error'})
         }
         if(result.length===0){  
             const hashedPassword = bcrypt.hashSync(password,10);
@@ -193,6 +194,7 @@ app.post('/login',(req,res)=>{
         db.query("select * from users where email = ?",[email],(err,result)=>{
             if(err){
                 console.log("Error while fetching user in login",err);
+                res.json({message: 'error'})
                 return
             }
             if(result.length === 0){
