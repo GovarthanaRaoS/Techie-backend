@@ -350,6 +350,7 @@ app.post('/savescores',(req,res)=>{
                 if(err){
                     console.log('Something went wrong while deleting user data');
                     db.release();
+                    return;
                 }
                 console.log('Deleted successfully');
                 db.release();
@@ -359,6 +360,7 @@ app.post('/savescores',(req,res)=>{
                 if(err){
                     res.send('Something went wrong while inserting into scoreboard');
                     db.release();
+                    return;
                 }
                 console.log('Result of saving scoreboard: ',result);
                 db.release();
