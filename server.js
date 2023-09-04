@@ -149,10 +149,10 @@ app.delete('/deleteuser/:email',(req,res)=>{
         if(errorr){
             res.send("Error occurred while establishing connection in deleting query ",errorr);
         }else{
-            const {isModerator} = req.body;
-            const {isAdmin} = req.body;
-            console.log('IsModerator: ',isModerator);
-            console.log('isAdmin: ',isAdmin);
+            // const {isModerator} = req.body;
+            // const {isAdmin} = req.body;
+            // console.log('IsModerator: ',isModerator);
+            // console.log('isAdmin: ',isAdmin);
             const {email} = req.params;
             console.log('Delete Email: ',email);
         
