@@ -155,7 +155,6 @@ app.delete('/deleteuser/:email',(req,res)=>{
             console.log('isAdmin: ',isAdmin);
             const {email} = req.params;
             console.log('Delete Email: ',email);
-            if(isModerator || isAdmin){
         
                 db.query('delete from users where email = ?',[email],(err,result)=>{
                     if(err){
@@ -176,28 +175,6 @@ app.delete('/deleteuser/:email',(req,res)=>{
                     return res.send('Delete successfully');
                     
                 })
-        
-            }else{
-                db.query('delete from users where email = ?',[email],(err,result)=>{
-                    if(err){
-                        console.log('Something went wrong while deleting the user');
-                        db.release();
-                        return res.send('error deleting');
-                    }
-                    console.log('Result of Deletion: ',result);
-                    req.session.destroy(error=>{
-                        if(error){
-                            console.log('Something went wrong while deleting guest email',error);
-                            db.release();
-                            return;
-                        }
-                        res.send('session destroyed successfully');
-                        db.release();
-                    })
-                    return res.send('Delete successfully');
-                    
-                })
-            }
         }
     })
 })
