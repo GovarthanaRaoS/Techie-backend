@@ -52,7 +52,9 @@ contactEmail.verify((error)=>{
     }
 })
 
-const db = mysql.createConnection({
+const pool = mysql.createPool({
+    waitForConnections: true,
+    connectionLimit: 10,
     host: "sql6.freesqldatabase.com",
     user: "sql6642632",
     password: "RF5rVDsGzF",
@@ -66,162 +68,229 @@ const db = mysql.createConnection({
 //     database: "nodetechie"
 // })
 
-db.connect(err=>{
-    if(err){
-        console.log("Error fetching the results", err);
-        return;
-    }
-    console.log("Connected to mysql database")
-})
+// db.connect(err=>{
+//     if(err){
+//         console.log("Error fetching the results", err);
+//         return;
+//     }
+//     console.log("Connected to mysql database")
+// })
 
 app.get('/greet',(req,res)=>{
     return res.send('Hello');
 })
 
 app.get('/getusers',(req,res)=>{
-    db.query("select id,name,email,role from users",(err,result)=>{
+
+    pool.getConnection((error,db)=>{
         if(err){
-            console.log("Error while retreiving data",err);
-            return res.json([{message: 'error'}]);
-        }
-        if(result.length>0){
-
-            console.log("Data Retreived successfully");
-            return res.json(result);
-
+            res.send('Error occurred while establishing connection in getting users query',error);
         }else{
-
-            console.log("Nothing to return");
-            return res.json(result);
-
+            db.query("select id, name, email, role from users",(err,result)=>{
+                if(err){
+                    console.log("Error while retreiving data",err);
+                    db.release();
+                    return res.json([{message: 'error'}]);
+                }
+                if(result.length>0){
+        
+                    console.log("Data Retreived successfully");
+                    db.release();
+                    return res.json(result);
+        
+                }else{
+        
+                    console.log("Nothing to return");
+                    db.release();
+                    return res.json(result);
+        
+                }
+        
+            })
         }
-
     })
 })
 
-app.post('/saveuser2',(req,res)=>{
-    const {name, email, password} = req.body;
+// app.post('/saveuser2',(req,res)=>{
+//     const {name, email, password} = req.body;
 
-    db.query("insert into users(name,email,password) values(?,?,?)",[name,email,password],(err,result)=>{
-        if(err){
-            console.log('Error:',err);
-        }
-        return res.send('Data Stored Successfully');
-    })
-})
+//     db.query("insert into users(name,email,password) values(?,?,?)",[name,email,password],(err,result)=>{
+//         if(err){
+//             console.log('Error:',err);
+//         }
+//         return res.send('Data Stored Successfully');
+//     })
+// })
 
 app.post('/updaterole',(req,res)=>{
-    const {email,role} = req.body;
-    db.query('update users set role=? where email=?',[role,email],(err,result)=>{
+
+    pool.getConnection((error,db)=>{
         if(err){
-            console.log('Something went wrong while updating user',err);
-            return res.send('error');
+            res.send("Error occurred while establishing connection in updating role query")
+        }else{
+            const {email,role} = req.body;
+            db.query('update users set role=? where email=?',[role,email],(err,result)=>{
+                if(err){
+                    console.log('Something went wrong while updating user',err);
+                    db.release();
+                    return res.send('error');
+                }
+                console.log(result);
+                db.release();
+                return res.send('Update successful');
+            })
         }
-        console.log(result);
-        return res.send('Update successful');
     })
 })
 
 app.delete('/deleteuser/:email',(req,res)=>{
-    const {isModerator} = req.body;
-    const {isAdmin} = req.body;
-    console.log('IsModerator: ',isModerator);
-    console.log('isAdmin: ',isAdmin);
-    const {email} = req.params;
-    console.log('Delete Email: ',email);
-    if(isModerator || isAdmin){
 
-        db.query('delete from users where email = ?',[email],(err,result)=>{
-            if(err){
-                console.log('Something went wrong while deleting the user');
-                return res.send('error deleting');
+    pool.getConnection((errorr,db)=>{
+        if(err){
+            res.send("Error occurred while establishing connection in deleting query ",errorr);
+        }else{
+            const {isModerator} = req.body;
+            const {isAdmin} = req.body;
+            console.log('IsModerator: ',isModerator);
+            console.log('isAdmin: ',isAdmin);
+            const {email} = req.params;
+            console.log('Delete Email: ',email);
+            if(isModerator || isAdmin){
+        
+                db.query('delete from users where email = ?',[email],(err,result)=>{
+                    if(err){
+                        console.log('Something went wrong while deleting the user');
+                        db.release();
+                        return res.send('error deleting');
+                    }
+                    console.log('Result of Deletion: ',result);
+                    req.session.destroy(error=>{
+                        if(error){
+                            console.log('Something went wrong while deleting moderator email',error);
+                            db.release();
+                            return;
+                        }
+                        res.send('session destroyed successfully');
+                        db.release();
+                    })
+                    return res.send('Delete successfully');
+                    
+                })
+        
+            }else{
+                db.query('delete from users where email = ?',[email],(err,result)=>{
+                    if(err){
+                        console.log('Something went wrong while deleting the user');
+                        db.release();
+                        return res.send('error deleting');
+                    }
+                    console.log('Result of Deletion: ',result);
+                    req.session.destroy(error=>{
+                        if(error){
+                            console.log('Something went wrong while deleting guest email',error);
+                            db.release();
+                            return;
+                        }
+                        res.send('session destroyed successfully');
+                        db.release();
+                    })
+                    return res.send('Delete successfully');
+                    
+                })
             }
-            console.log('Result of Deletion: ',result);
-            req.session.destroy(error=>{
-                if(error){
-                    console.log('Something went wrong while deleting moderator email',error);
-                    return;
-                }
-                res.send('session destroyed successfully');
-            })
-            return res.send('Delete successfully');
-            
-        })
-
-    }else{
-        db.query('delete from users where email = ?',[email],(err,result)=>{
-            if(err){
-                console.log('Something went wrong while deleting the user');
-                return res.send('error deleting');
-            }
-            console.log('Result of Deletion: ',result);
-            return res.send('Delete successfully');
-            
-        })
-    }
-
-
+        }
+    })
 })
 
 app.post('/saveuser',(req,res)=>{
-    const {name,email,password, role} = req.body;
-    console.log(name,email,password, role)
-    db.query("select email from users where email=?",[email],(err,result)=>{
+
+    pool.getConnection((error,db)=>{
         if(err){
-            console.log("Something went wrong while checking for existing email",err);
-            return res.json({message:'error'})
-        }
-        if(result.length===0){  
-            const hashedPassword = bcrypt.hashSync(password,10);
-    db.query("insert into users(name,email,password,role) values(?,?,?,?)",[name,email,hashedPassword,role],(err,result)=>{
-        if(err){
-            console.log("Error while inserting into db",err);
-            return
-        }
-        console.log("Hashed password: ", hashedPassword);
-        console.log("Result of saved user: ",result);
-        return res.send("User registered successfully");
-    })
+            res.send('Error occurred while establishing connection in signing save query',error);
         }else{
-            console.log("Result from db: ",result)
-            res.send("Email already exists")
+
+            const {name,email,password, role} = req.body;
+            console.log(name,email,password, role)
+            db.query("select email from users where email=?",[email],(err,result)=>{
+                if(err){
+                    console.log("Something went wrong while checking for existing email",err);
+                    db.release();
+                    return res.json({message:'error'})
+                }
+                if(result.length===0){  
+                    const hashedPassword = bcrypt.hashSync(password,10);
+            db.query("insert into users(name,email,password,role) values(?,?,?,?)",[name,email,hashedPassword,role],(err,result)=>{
+                if(err){
+                    console.log("Error while inserting into db",err);
+                    db.release();
+                    return
+                }
+                console.log("Hashed password: ", hashedPassword);
+                console.log("Result of saved user: ",result);
+                db.release();
+                return res.send("User registered successfully");
+            })
+                }else{
+                    console.log("Result from db: ",result);
+                    db.release();
+                    res.send("Email already exists");
+                }
+            })
+
         }
     })
 })
 
 app.post('/login',(req,res)=>{
-    const {email,password} = req.body;
-        db.query("select * from users where email = ?",[email],(err,result)=>{
-            if(err){
-                console.log("Error while fetching user in login",err);
-                res.json({message: 'error'})
-                return
-            }
-            if(result.length === 0){
-                console.log("If email does not exist",result)
-                return res.send("Account does not exist");
-            }else{
-                const user = result[0];
-                console.log("If email exist",user)
-                if(user && bcrypt.compareSync(password, user.password)){
-                    console.log("Password matched",user);
-                    const token = jwt.sign({user},'gopi1234',{expiresIn: '7d'});
-                    req.session.token = token;
-                    req.session.user = user;
-                    res.cookie('userDetails',"hola",{maxAge:30000,httpOnly:true});
-                    console.log('Cookie set');
-                    console.log("Cookie setted: ",req.cookies['userDetails'])
-                    console.log("Session token: ",req.session.token);
-                    res.json({token});
-                    // req.session.user = user;
-                    // console.log("Session user: ",req.session.user);
-                    // return res.send(user);
-                }else{
-                    console.log("Invalid credentials");
-                    return res.send("Invalid credentials");
+
+    pool.getConnection((errorr,db)=>{
+
+        if(errorr){
+            res.send('Error occurred while establishing connection in logging query',errorr);
+            return;
+        }else{
+
+            const {email,password} = req.body;
+            db.query("select * from users where email = ?",[email],(err,result)=>{
+                if(err){
+                    console.log("Error while fetching user in login",err);
+                    res.json({message: 'error'});
+                    db.release();
+                    return
                 }
-            }
-        })
+                if(result.length === 0){
+                    console.log("If email does not exist",result);
+                    db.release();
+                    return res.send("Account does not exist");
+                }else{
+                    const user = result[0];
+                    console.log("If email exist",user)
+                    if(user && bcrypt.compareSync(password, user.password)){
+                        console.log("Password matched",user);
+                        const token = jwt.sign({user},'gopi1234',{expiresIn: '7d'});
+                        req.session.token = token;
+                        req.session.user = user;
+                        res.cookie('userDetails',"hola",{maxAge:30000,httpOnly:true});
+                        console.log('Cookie set');
+                        console.log("Cookie setted: ",req.cookies['userDetails'])
+                        console.log("Session token: ",req.session.token);
+                        res.json({token});
+                        db.release();
+                        // req.session.user = user;
+                        // console.log("Session user: ",req.session.user);
+                        // return res.send(user);
+                    }else{
+                        console.log("Invalid credentials");
+                        db.release();
+                        return res.send("Invalid credentials");
+                    }
+                }
+            })
+
+        }
+
+    })
+
 })
 
 // function verifyToken(req,res,next){
@@ -290,246 +359,389 @@ app.get('/doesuserexist',(req,res)=>{
 })
 
 app.post('/savescores',(req,res)=>{
-    const {name, email, score, category, date} = req.body;
 
-    db.query('Delete from scoreboard where name=? and category=?',[name,category],(err,result)=>{
-        if(err){
-            console.log('Something went wrong while deleting user data')
-        }
-        console.log('Deleted successfully');
-    })
+    pool.getConnection((errorr, db)=>{
 
-    db.query('Insert into scoreboard(name,email,score,category,date) values(?,?,?,?,?)',[name,email,score,category,date],(err,result)=>{
-        if(err){
-            res.send('Something went wrong while inserting into scoreboard');
+        if(errorr){
+            res.send('Error occurred while establishing connection in saving user query',errorr);
+        }else{
+
+            const {name, email, score, category, date} = req.body;
+
+            db.query('Delete from scoreboard where name=? and category=?',[name,category],(err,result)=>{
+                if(err){
+                    console.log('Something went wrong while deleting user data');
+                    db.release();
+                }
+                console.log('Deleted successfully');
+                db.release();
+            })
+        
+            db.query('Insert into scoreboard(name,email,score,category,date) values(?,?,?,?,?)',[name,email,score,category,date],(err,result)=>{
+                if(err){
+                    res.send('Something went wrong while inserting into scoreboard');
+                    db.release();
+                }
+                console.log('Result of saving scoreboard: ',result);
+                db.release();
+                return res.send('Stored successfully');
+            })
+
         }
-        console.log('Result of saving scoreboard: ',result);
-        return res.send('Stored successfully');
+
     })
 
 })
 
 app.post('/getprevresults',(req,res)=>{
 
-    const {email} = req.body;
-
-    console.log('Received Email: ',email)
-
-    db.query('select * from scoreboard where email=?',[email],(err,result)=>{
-        if(err){
-            console.log('Error while getting previous result: ',err);
-            return res.json([]);
-        }
-        if(result.length >0 ){
-            console.log(result);
-            return res.json(result);
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in getting previous results query',errorr);
         }else{
-            console.log('results:', result);
-            return res.json(result);
+
+            const {email} = req.body;
+
+            console.log('Received Email: ',email)
+        
+            db.query('select * from scoreboard where email=?',[email],(err,result)=>{
+                if(err){
+                    console.log('Error while getting previous result: ',err);
+                    db.release();
+                    return res.json([]);
+                }
+                if(result.length >0 ){
+                    console.log(result);
+                    db.release();
+                    return res.json(result);
+                }else{
+                    console.log('results:', result);
+                    db.release();
+                    return res.json(result);
+                }
+            })
+
         }
     })
+
 })
 
 app.get('/getscoreboard',(req,res)=>{
-    db.query('select * from scoreboard',(err,result)=>{
-        if(err){
-            console.log('Error while fetching the scoreboard: ',err);
-            return res.json([{message: 'error'}]);
+
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in getting scoreboard query',errorr)
+        }else{
+            db.query('select * from scoreboard',(err,result)=>{
+                if(err){
+                    console.log('Error while fetching the scoreboard: ',err);
+                    db.release();
+                    return res.json([{message: 'error'}]);
+                }
+                db.release();
+                return res.json(result);
+            })
         }
-        return res.json(result);
     })
 })
 
 app.post('/sorteduser',(req,res)=>{
-    const {isAsc} = req.body;
-    if(isAsc){
 
-        db.query('select * from users order by name',(err,result)=>{
-            if(err){
-                console.log('Error while sorting users');
-                return res.send('error');
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in sorting user name query',errorr)
+        }else{
+
+            const {isAsc} = req.body;
+            if(isAsc){
+        
+                db.query('select * from users order by name',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting users');
+                        db.release();
+                        return res.send('error');
+                    }
+                    console.log('Sorted user ascending: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+        
+            }else{
+        
+                db.query('select * from users order by name DESC',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting users');
+                        db.release();
+                        return res.send('error');
+                    }
+                    console.log('Sorted user descending: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+        
             }
-            console.log('Sorted user ascending: ',result);
-            return res.json(result);
-        })
 
-    }else{
-
-        db.query('select * from users order by name DESC',(err,result)=>{
-            if(err){
-                console.log('Error while sorting users');
-                return res.send('error');
-            }
-            console.log('Sorted user descending: ',result);
-            return res.json(result);
-        })
-
-    }
+        }
+    })
 
 })
 
 //Sorting Queries
 
 app.post('/sortname',(req,res)=>{
-    const {isAsc} = req.body;
-    // console.log('type: ',type);
-    console.log('isAsc: ',isAsc);
-    if(isAsc){
-        db.query('SELECT * FROM scoreboard ORDER BY name ASC',(err,result)=>{
-            if(err){
-                console.log('Error while sorting by name: ',err);
-                return res.send('error')
+
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in sorting user name query',errorr)
+        }else{
+
+            const {isAsc} = req.body;
+            // console.log('type: ',type);
+            console.log('isAsc: ',isAsc);
+            if(isAsc){
+                db.query('SELECT * FROM scoreboard ORDER BY name ASC',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting by name: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned Ascending response: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+            }else{
+                db.query('SELECT * FROM scoreboard ORDER BY name DESC',(err,resultt)=>{
+                    if(err){
+                        console.log('Error while sorting by name: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned descending response: ',resultt);
+                    db.release();
+                    return res.json(resultt);
+                })
             }
-            console.log('Returned Ascending response: ',result);
-            return res.json(result);
-        })
-    }else{
-        db.query('SELECT * FROM scoreboard ORDER BY name DESC',(err,resultt)=>{
-            if(err){
-                console.log('Error while sorting by name: ',err);
-                return res.send('error')
-            }
-            console.log('Returned descending response: ',resultt);
-            return res.json(resultt);
-        })
-    }
+
+        }
+    })
+
 })
 
 app.post('/sortemail',(req,res)=>{
-    const {isAsc} = req.body;
-    // console.log('type: ',type);
-    console.log('isAsc: ',isAsc);
-    if(isAsc){
-        db.query('SELECT * FROM scoreboard ORDER BY email ASC',(err,result)=>{
-            if(err){
-                console.log('Error while sorting by email: ',err);
-                return res.send('error')
+
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in sorting user email query',errorr);
+        }else{
+
+            const {isAsc} = req.body;
+            // console.log('type: ',type);
+            console.log('isAsc: ',isAsc);
+            if(isAsc){
+                db.query('SELECT * FROM scoreboard ORDER BY email ASC',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting by email: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned Ascending response: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+            }else{
+                db.query('SELECT * FROM scoreboard ORDER BY email DESC',(err,resultt)=>{
+                    if(err){
+                        console.log('Error while sorting by email: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned descending response: ',resultt);
+                    db.release();
+                    return res.json(resultt);
+                })
             }
-            console.log('Returned Ascending response: ',result);
-            return res.json(result);
-        })
-    }else{
-        db.query('SELECT * FROM scoreboard ORDER BY email DESC',(err,resultt)=>{
-            if(err){
-                console.log('Error while sorting by email: ',err);
-                return res.send('error')
-            }
-            console.log('Returned descending response: ',resultt);
-            return res.json(resultt);
-        })
-    }
+
+        }
+    })
+
 })
 
 app.post('/sortscore',(req,res)=>{
-    const {isAsc} = req.body;
-    // console.log('type: ',type);
-    console.log('isAsc: ',isAsc);
-    if(isAsc){
-        db.query('SELECT * FROM scoreboard ORDER BY score ASC',(err,result)=>{
-            if(err){
-                console.log('Error while sorting by score: ',err);
-                return res.send('error')
+
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in sorting user score query',errorr);
+        }else{
+
+            const {isAsc} = req.body;
+            // console.log('type: ',type);
+            console.log('isAsc: ',isAsc);
+            if(isAsc){
+                db.query('SELECT * FROM scoreboard ORDER BY score ASC',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting by score: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned Ascending response: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+            }else{
+                db.query('SELECT * FROM scoreboard ORDER BY score DESC',(err,resultt)=>{
+                    if(err){
+                        console.log('Error while sorting by score: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned descending response: ',resultt);
+                    db.release();
+                    return res.json(resultt);
+                })
             }
-            console.log('Returned Ascending response: ',result);
-            return res.json(result);
-        })
-    }else{
-        db.query('SELECT * FROM scoreboard ORDER BY score DESC',(err,resultt)=>{
-            if(err){
-                console.log('Error while sorting by score: ',err);
-                return res.send('error')
-            }
-            console.log('Returned descending response: ',resultt);
-            return res.json(resultt);
-        })
-    }
+
+        }
+    })
+
 })
 
 app.post('/sortcategory',(req,res)=>{
-    const {isAsc} = req.body;
-    // console.log('type: ',type);
-    console.log('isAsc: ',isAsc);
-    if(isAsc){
-        db.query('SELECT * FROM scoreboard ORDER BY category ASC',(err,result)=>{
-            if(err){
-                console.log('Error while sorting by category: ',err);
-                return res.send('error')
+
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in sorting user category query',errorr);
+        }else{
+
+            const {isAsc} = req.body;
+            // console.log('type: ',type);
+            console.log('isAsc: ',isAsc);
+            if(isAsc){
+                db.query('SELECT * FROM scoreboard ORDER BY category ASC',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting by category: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned Ascending response: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+            }else{
+                db.query('SELECT * FROM scoreboard ORDER BY category DESC',(err,resultt)=>{
+                    if(err){
+                        console.log('Error while sorting by category: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned descending response: ',resultt);
+                    db.release();
+                    return res.json(resultt);
+                })
             }
-            console.log('Returned Ascending response: ',result);
-            return res.json(result);
-        })
-    }else{
-        db.query('SELECT * FROM scoreboard ORDER BY category DESC',(err,resultt)=>{
-            if(err){
-                console.log('Error while sorting by category: ',err);
-                return res.send('error')
-            }
-            console.log('Returned descending response: ',resultt);
-            return res.json(resultt);
-        })
-    }
+
+        }
+    })
+
 })
 
 app.post('/sortdate',(req,res)=>{
-    const {isAsc} = req.body;
-    // console.log('type: ',type);
-    console.log('isAsc: ',isAsc);
-    if(isAsc){
-        db.query('SELECT * FROM scoreboard ORDER BY date ASC',(err,result)=>{
-            if(err){
-                console.log('Error while sorting by date: ',err);
-                return res.send('error')
+
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in sorting user date query',errorr);
+        }else{
+
+            const {isAsc} = req.body;
+            // console.log('type: ',type);
+            console.log('isAsc: ',isAsc);
+            if(isAsc){
+                db.query('SELECT * FROM scoreboard ORDER BY date ASC',(err,result)=>{
+                    if(err){
+                        console.log('Error while sorting by date: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned Ascending response: ',result);
+                    db.release();
+                    return res.json(result);
+                })
+            }else{
+                db.query('SELECT * FROM scoreboard ORDER BY date DESC',(err,resultt)=>{
+                    if(err){
+                        console.log('Error while sorting by date: ',err);
+                        db.release();
+                        return res.send('error')
+                    }
+                    console.log('Returned descending response: ',resultt);
+                    db.release();
+                    return res.json(resultt);
+                })
             }
-            console.log('Returned Ascending response: ',result);
-            return res.json(result);
-        })
-    }else{
-        db.query('SELECT * FROM scoreboard ORDER BY date DESC',(err,resultt)=>{
-            if(err){
-                console.log('Error while sorting by date: ',err);
-                return res.send('error')
-            }
-            console.log('Returned descending response: ',resultt);
-            return res.json(resultt);
-        })
-    }
+
+        }
+    })
+
 })
 
 //End of Sorting Queries
 
 app.post('/getuserdata',(req,res)=>{
 
-    const {email} = req.body;
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in getting user data query',errorr);
+        }else{
 
-    db.query('select name, email, phoneno, highest_grad, college_name, profession, company_name from users where email = ?',[email],(err,result)=>{
-        if(err){
-            console.log('Something went wrong while returning user data for updating');
-            return res.json([{message: 'error'}])
+            const {email} = req.body;
+
+            db.query('select name, email, phoneno, highest_grad, college_name, profession, company_name from users where email = ?',[email],(err,result)=>{
+                if(err){
+                    console.log('Something went wrong while returning user data for updating');
+                    db.release();
+                    return res.json([{message: 'error'}])
+                }
+                console.log('Retreived user data for updating: ',result);
+                db.release();
+                return res.json(result);
+            })
+
         }
-        console.log('Retreived user data for updating: ',result);
-        return res.json(result);
     })
 
 })
 
 app.post('/updateuser',(req,res)=>{
 
-    const {name, email ,phoneno, highest_grad, college_name, profession, company_name} = req.body;
+    pool.getConnection((errorr,db)=>{
 
-    db.query('update users set name=?, phoneno=?, highest_grad=?, college_name=?, profession=?, company_name=? where email=?',[name,phoneno,highest_grad,college_name,profession, company_name,email ],(err,result)=>{
-        if(err){
-            console.log('Error: ',err);
-            return res.json([{message: 'error'}]);
+        if(errorr){
+            res.send('Error occurred while establishing connection in updating user query',errorr);
+        }else{
+
+            const {name, email ,phoneno, highest_grad, college_name, profession, company_name} = req.body;
+
+            db.query('update users set name=?, phoneno=?, highest_grad=?, college_name=?, profession=?, company_name=? where email=?',[name,phoneno,highest_grad,college_name,profession, company_name,email ],(err,result)=>{
+                if(err){
+                    console.log('Error: ',err);
+                    db.release();
+                    return res.json([{message: 'error'}]);
+                }
+                console.log('Result while updating ',result);
+                db.release();
+                // db.query('select name, email, phoneno, highest_grad, college_name, profession, company_name from users where email = ?',[email],(errr,resul)=>{
+        
+                // })
+                return res.send('Updated successfully');
+            })
+
         }
-        console.log('Result while updating ',result);
-        // db.query('select name, email, phoneno, highest_grad, college_name, profession, company_name from users where email = ?',[email],(errr,resul)=>{
 
-        // })
-        return res.send('Updated successfully');
     })
+
 })
 
 app.post('/contact',(req,res)=>{
+
     const {name, email, subject, message} = req.body;
     const mail = {
         from: name,
