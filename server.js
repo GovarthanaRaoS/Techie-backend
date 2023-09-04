@@ -82,9 +82,9 @@ app.get('/greet',(req,res)=>{
 
 app.get('/getusers',(req,res)=>{
 
-    pool.getConnection((error,db)=>{
-        if(err){
-            res.send('Error occurred while establishing connection in getting users query',error);
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in getting users query',errorr);
         }else{
             db.query("select id, name, email, role from users",(err,result)=>{
                 if(err){
@@ -124,9 +124,9 @@ app.get('/getusers',(req,res)=>{
 
 app.post('/updaterole',(req,res)=>{
 
-    pool.getConnection((error,db)=>{
-        if(err){
-            res.send("Error occurred while establishing connection in updating role query")
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send("Error occurred while establishing connection in updating role query ",errorr)
         }else{
             const {email,role} = req.body;
             db.query('update users set role=? where email=?',[role,email],(err,result)=>{
@@ -204,9 +204,9 @@ app.delete('/deleteuser/:email',(req,res)=>{
 
 app.post('/saveuser',(req,res)=>{
 
-    pool.getConnection((error,db)=>{
-        if(err){
-            res.send('Error occurred while establishing connection in signing save query',error);
+    pool.getConnection((errorr,db)=>{
+        if(errorr){
+            res.send('Error occurred while establishing connection in signing save query',errorr);
         }else{
 
             const {name,email,password, role} = req.body;
