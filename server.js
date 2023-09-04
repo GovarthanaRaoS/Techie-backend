@@ -146,7 +146,7 @@ app.post('/updaterole',(req,res)=>{
 app.delete('/deleteuser/:email',(req,res)=>{
 
     pool.getConnection((errorr,db)=>{
-        if(err){
+        if(errorr){
             res.send("Error occurred while establishing connection in deleting query ",errorr);
         }else{
             const {isModerator} = req.body;
