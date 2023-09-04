@@ -127,6 +127,7 @@ app.post('/updaterole',(req,res)=>{
     pool.getConnection((errorr,db)=>{
         if(errorr){
             res.send("Error occurred while establishing connection in updating role query ",errorr)
+            return
         }else{
             const {email,role} = req.body;
             db.query('update users set role=? where email=?',[role,email],(err,result)=>{
@@ -148,6 +149,7 @@ app.delete('/deleteuser/:email',(req,res)=>{
     pool.getConnection((errorr,db)=>{
         if(errorr){
             res.send("Error occurred while establishing connection in deleting query ",errorr);
+            return
         }else{
             // const {isModerator} = req.body;
             // const {isAdmin} = req.body;
@@ -169,9 +171,8 @@ app.delete('/deleteuser/:email',(req,res)=>{
                             db.release();
                             return;
                         }
-                        res.send('session destroyed successfully');
-                        db.release();
                     })
+                    db.release();
                     return res.send('Delete successfully');
                     
                 })
