@@ -353,7 +353,6 @@ app.post('/savescores',(req,res)=>{
                     return;
                 }
                 console.log('Deleted successfully');
-                db.release();
             })
         
             db.query('Insert into scoreboard(name,email,score,category,date) values(?,?,?,?,?)',[name,email,score,category,date],(err,result)=>{
