@@ -55,10 +55,10 @@ contactEmail.verify((error)=>{
 const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
-    host: "sql6.freesqldatabase.com",
-    user: "sql6642632",
-    password: "RF5rVDsGzF",
-    database: "sql6642632"
+    host: "sql12.freesqldatabase.com",
+    user: "sql12645441",
+    password: "nL4uKlkk44",
+    database: "sql12645441"
 })
 
 // const db = mysql.createConnection({
